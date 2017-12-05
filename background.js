@@ -81,6 +81,11 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
 	});
 });*/
 
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+	if (changeInfo.status == 'loading') {
+		setExt(tab.url);
+	}
+});
 chrome.tabs.onActivated.addListener(info=> {
 	let {tabId, windowId} = info;
 	chrome.tabs.getSelected(null, function(tab) {
