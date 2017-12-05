@@ -1,0 +1,20 @@
+{
+   "background": {"scripts": ["background.js"]},
+   "browser_action": {
+      "default_icon": "icon.png",
+      "default_popup": "popup.html",
+      "default_title": "V Extension Manager"
+   },
+   "description": "Automatically enables and disables extensions for specified sites. For simpler browsing and better performance.",
+   "icons": {
+      "128": "icon128.png",
+      "16": "icon16.png",
+      "48": "icon48.png"
+   },
+   "name": "V Extension Manager",
+   "options_page": "options.html",
+   "permissions": [ "management", "tabs" ],
+   "update_url": "http://clients2.google.com/service/update2/crx",
+   "version": "1.0.0",
+   "manifest_version": 2
+}
