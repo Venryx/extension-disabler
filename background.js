@@ -1,6 +1,6 @@
 function resetStates() {
 	for (key in localStorage) {
-		if (key == "undefined" || typeof (key) == undefined|| key == "firstRun" || localStorage.getItem(key) == null) {
+		if (key == "undefined" || typeof (key) == undefined|| key == "firstRun" || key == "disableAll" || localStorage.getItem(key) == null) {
 			continue;
 		}
 		var storedEntry = JSON.parse(localStorage.getItem(key));
@@ -33,23 +33,23 @@ function setExt(url) {
 	console.log("Updating extension enablednesses...");
 	chrome.browserAction.setBadgeBackgroundColor({color: [0, 0, 0, 0]});
 	chrome.browserAction.setBadgeText({text: ""});
-	for (key in localStorage) {
-		if (key == "undefined" || typeof (key) == undefined || key == "firstRun" || localStorage.getItem(key) == null) {
-			continue;
+	Object.keys(localStorage).forEach(function (key) {
+		if (!(key == "undefined" || typeof (key) == undefined || key == "firstRun" || key == "disableAll" || localStorage.getItem(key) == null)) {
+			var storedEntry = JSON.parse(localStorage.getItem(key));
+			chrome.management.get(key, function (ext) {
+				console.log('Updating for:' + JSON.stringify(storedEntry));
+				let entryMatchesURL = storedEntry.filterWords.filter((urlPattern) => url.includes(urlPattern)).length > 0;
+
+				if (entryMatchesURL) {
+					chrome.browserAction.setBadgeBackgroundColor({ color: [100, 250, 100, 120] });
+					chrome.browserAction.setBadgeText({ text: 'ON' });
+					chrome.management.setEnabled(storedEntry.id, storedEntry.bEnable);
+				} else {
+					chrome.management.setEnabled(storedEntry.id, !storedEntry.bEnable);
+				}
+			});
 		}
-		var storedEntry = JSON.parse(localStorage.getItem(key));
-		chrome.management.get(key, function (ext) {
-			console.log("Updating for:" + JSON.stringify(storedEntry));
-			let entryMatchesURL = storedEntry.filterWords.find(urlPattern=>url.match(new RegExp(urlPattern, "i"))) != null;
-			if (entryMatchesURL) {
-				chrome.browserAction.setBadgeBackgroundColor({color: [100, 250, 100, 120]});
-				chrome.browserAction.setBadgeText({text: "ON"});
-				chrome.management.setEnabled(storedEntry.id, storedEntry.bEnable);
-			} else {
-				chrome.management.setEnabled(storedEntry.id, !storedEntry.bEnable);
-			}
-		});
-	}
+	})
 }
 /*chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	if (changeInfo.status == 'loading') {
