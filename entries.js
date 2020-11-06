@@ -2,9 +2,47 @@
 //No parts of this document may be used in any published or commercial
 //materials without prior consent. I would happy to share this code, but I prefer being asked first.
 
+var DISABLE_KEY = 'disableAll';
+
 function init() {
 	let popup = window.location.href.endsWith("/popup.html");
 	if (popup) {
+		var disableAll = document.getElementById('disableAll');
+		var areDisabled = localStorage.getItem(DISABLE_KEY);
+
+		if (areDisabled) {
+			disableAll.checked = true;
+		}
+
+		disableAll.addEventListener('click', function (event) {
+		var isConfirmed = confirm('Do you want to disable all the extensions?');
+
+		if (!isConfirmed) {
+			disableAll.checked = false;
+			return;
+		}
+
+		chrome.management
+      .getAll(function getAllExtensions(extensions) {
+				if (event.target.checked) {
+					var filterText = document.getElementById('siteURL').value;
+					var ownExtension = 'V Extension Manager';
+
+					const exts = extensions.filter((ext) => !ext.isApp && ext.type === 'extension' && ext.name !== ownExtension);
+
+					exts.forEach((ext) => {
+             addStore(ext.id, filterText, 'Disable');
+          });
+
+					localStorage.setItem(DISABLE_KEY, true);
+				} else {
+					doClear();
+					var areDisabled = localStorage.getItem(DISABLE_KEY);
+					disableAll.checked = !!areDisabled;
+				}
+      })
+		});
+		
 		chrome.tabs.getSelected(function (tab) {
 			var getUrl = tab.url;
 			var domainUrl = getUrl.split('/');
@@ -113,7 +151,7 @@ function makeTable() {
 	}
 	var $tbody = document.createElement("tbody");
 	for (extId in localStorage) {
-		if (extId == "undefined" || extId == "firstRun") {continue;}
+		if (extId == "undefined" || extId == "firstRun" || extId == "disableAll") {continue;}
 		chrome.management.get(extId, function (ext) {
 			var entry = JSON.parse(localStorage.getItem(ext.id));
 			if (entry == null){return;}
@@ -219,12 +257,12 @@ function switchMode(entryId) {
 
 function doClear() {
 	var r=confirm("Erase all saved settings?");
-	if (r==true)
-	  {
+	if (r==true) {
 	  	localStorage.clear();
 	  	firstRun();
-		makeTable();
-	  }	
+			makeTable();
+			localStorage.removeItem(DISABLE_KEY);
+	}	
 }
 
 window.addEventListener("load", ()=> {
